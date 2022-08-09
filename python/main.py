@@ -6,7 +6,7 @@ if __name__ == '__main__':
         "user" : "root",
         "password" : "",
         "host" : "localhost",
-        "database" : "rinos"
+        "database" : "test"
     }
 
     conn = mariadb.connect(**connection_args)
@@ -14,11 +14,18 @@ if __name__ == '__main__':
 
     # execute a query
     # cur.execute("SELECT * FROM t;")
+
+    # get columns' name
+    # cols = [x[0] for x in cur.description]
     
-    # get result of a query
+    # print result of a query
     # for id, is_true in cur:
     #     print(id, is_true)
 
+    # get number of affected rows
+    # cur.execute("INSERT INTO T() VALUES(),(),();")
+    # cur.execute("SELECT ROW_COUNT();")
+    # print(cur.fetchone()[0])
 
     # catch exeption from dbms
     # try:
