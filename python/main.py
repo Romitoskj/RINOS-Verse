@@ -1,19 +1,29 @@
 import mariadb
 
-def print_hi(name):
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
 
 if __name__ == '__main__':
     connection_args = {
         "user" : "root",
         "password" : "",
         "host" : "localhost",
-        "database" : "test"
+        "database" : "rinos"
     }
 
-    cursor = mariadb.connect(**connection_args).cursor()
-    cursor.execute("SELECT * FROM t;")
-    # print(cursor.fetchall())
-    for id, is_true in cursor:
-        print(id, is_true)
+    conn = mariadb.connect(**connection_args)
+    cur = conn.cursor()
+
+    # execute a query
+    # cur.execute("SELECT * FROM t;")
+    
+    # get result of a query
+    # for id, is_true in cur:
+    #     print(id, is_true)
+
+
+    # catch exeption from dbms
+    # try:
+    #     cur.execute("some MariaDB query")
+    # except mariadb.Error as e:
+    #     print(f"Error: {e}")
+
+    conn.close()
