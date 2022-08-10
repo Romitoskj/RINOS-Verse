@@ -3,10 +3,10 @@ import mariadb
 
 if __name__ == '__main__':
     connection_args = {
-        "user" : "root",
-        "password" : "",
-        "host" : "localhost",
-        "database" : "test"
+        "user": "root",
+        "password": "",
+        "host": "localhost",
+        "database": "test"
     }
 
     conn = mariadb.connect(**connection_args)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # cur.execute("SELECT ROW_COUNT();")
     # print(cur.fetchone()[0])
 
-    # catch exeption from dbms
+    # catch exception from dbms
     # try:
     #     cur.execute("some MariaDB query")
     # except mariadb.Error as e:
