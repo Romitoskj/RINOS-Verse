@@ -1,4 +1,5 @@
 import mariadb
+import bcrypt
 
 
 if __name__ == '__main__':
@@ -9,8 +10,8 @@ if __name__ == '__main__':
         "database": "test"
     }
 
-    conn = mariadb.connect(**connection_args)
-    cur = conn.cursor()
+    # conn = mariadb.connect(**connection_args)
+    # cur = conn.cursor()
 
     # execute a query
     # cur.execute("SELECT * FROM t;")
@@ -32,5 +33,11 @@ if __name__ == '__main__':
     #     cur.execute("some MariaDB query")
     # except mariadb.Error as e:
     #     print(f"Error: {e}")
-
-    conn.close()
+    
+    # conn.close()
+    
+    psd = "la mia password"
+    h = bcrypt.hashpw(str.encode(psd), bcrypt.gensalt())
+    print(h)
+    print(len(h))
+    print(bcrypt.checkpw(str.encode("la mia password"), h))
