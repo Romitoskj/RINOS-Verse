@@ -1,3 +1,12 @@
+CREATE TABLE IF NOT EXISTS Sesso (
+    value CHAR(1) PRIMARY KEY
+);
+
+INSERT INTO Sesso (value)
+VALUES  ('M'),
+        ('F');
+
+
 CREATE TABLE IF NOT EXISTS Utente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(30) NOT NULL,
@@ -6,9 +15,10 @@ CREATE TABLE IF NOT EXISTS Utente (
     cognome VARCHAR(30) NOT NULL,
     nome VARCHAR(30) NOT NULL,
     data_nascita DATE NOT NULL,
-    sesso ENUM('M', 'F') NOT NULL,
+    sesso CHAR(1) NOT NULL,
     email VARCHAR(50),
-    telefono VARCHAR(15)
+    telefono VARCHAR(15),
+    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
 CREATE TABLE IF NOT EXISTS Atleta (
@@ -51,4 +61,19 @@ CREATE TABLE IF NOT EXISTS Tutela (
     FOREIGN KEY (tutore) REFERENCES Tutore(utente) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS Stagione (
+    anno_inizio SMALLINT UNSIGNED PRIMARY KEY,
+    anno_fine SMALLINT UNSIGNED NOT NULL,
+    corrente BOOLEAN NOT NULL,
+    CONSTRAINT inizio_e_fine CHECK(anno_inizio < anno_fine)
+);
 
+CREATE TABLE IF NOT EXISTS Categoria (
+    id VARCHAR(4) PRIMARY KEY,
+    nome VARCHAR(20) NOT NULL,
+    tipo ENUM('RUGBY', 'MINIRUGBY') NOT NULL,
+    eta_min TINYINT UNSIGNED NOT NULL,
+    eta_max TINYINT UNSIGNED NOT NULL,
+    sesso CHAR(1),
+    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
+);
