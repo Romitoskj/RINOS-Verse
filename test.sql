@@ -1,1 +1,1 @@
-DESCRIBE utente;
+DESCRIBE tutela;
