@@ -90,3 +90,71 @@ CREATE TABLE IF NOT EXISTS Squadra (
     FOREIGN KEY (categoria) REFERENCES Categoria(id) ON DELETE NO ACTION ON UPDATE CASCADE,
     FOREIGN KEY (stagione) REFERENCES Stagione(anno_inizio) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Rosa (
+    atleta INT UNSIGNED,
+    squadra INT UNSIGNED,
+    PRIMARY KEY (atleta, squadra),
+    FOREIGN KEY (atleta) REFERENCES Atleta(utente) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Staff (
+    allenatore INT UNSIGNED,
+    squadra INT UNSIGNED,
+    PRIMARY KEY (allenatore, squadra),
+    FOREIGN KEY (allenatore) REFERENCES Allenatore(utente) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Evento (
+    data_ora_inizio DATETIME,
+    squadra INT UNSIGNED,
+    nome VARCHAR(30) NOT NULL,
+    descrizione TEXT,
+    data_ora_fine DATETIME,
+    citta VARCHAR(30) NOT NULL,
+    via VARCHAR(50) NOT NULL,
+    civico SMALLINT,
+    annullato BOOLEAN NOT NULL DEFAULT FALSE,
+    motivazione VARCHAR(120),
+    accompagnatore INT UNSIGNED,
+    PRIMARY KEY (data_ora_inizio, squadra),
+    FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (accompagnatore) REFERENCES Dirigente(utente) ON DELETE NO ACTION ON UPDATE CASCADE,
+    CONSTRAINT inizio_e_fine CHECK(data_ora_inizio < data_ora_fine)
+);
+
+CREATE TABLE IF NOT EXISTS Invito (
+    atleta INT UNSIGNED,
+    squadra_ev INT UNSIGNED,
+    data_ev DATETIME,
+    presenza BOOLEAN,
+    motivazione VARCHAR(120),
+    PRIMARY KEY (atleta, squadra_ev, data_ev),
+    FOREIGN KEY (atleta) REFERENCES Atleta(utente) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (squadra_ev, data_ev) REFERENCES Evento(squadra, data_ora_inizio) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Amministrazione (
+    allenatore INT UNSIGNED,
+    squadra_ev INT UNSIGNED,
+    data_ev DATETIME,
+    PRIMARY KEY (allenatore, squadra_ev, data_ev),
+    FOREIGN KEY (allenatore) REFERENCES Allenatore(utente) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (squadra_ev, data_ev) REFERENCES Evento(squadra, data_ora_inizio) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Allenamento (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    data_ora_inizio DATETIME NOT NULL,
+    ora_fine TIME,
+    stato ENUM('PROGRAMMATO', 'ANNULLATO', 'SVOLTO') NOT NULL DEFAULT 'PROGRAMMATO',
+    citta VARCHAR(30),
+    via VARCHAR(50),
+    civico SMALLINT,
+    motivazione VARCHAR(120),
+    stagione SMALLINT UNSIGNED,
+    CONSTRAINT inizio_fine CHECK(TIME(data_ora_inizio) < ora_fine),
+    FOREIGN KEY (stagione) REFERENCES Stagione(anno_inizio) ON DELETE NO ACTION ON UPDATE CASCADE
+);
