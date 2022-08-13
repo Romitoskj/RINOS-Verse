@@ -9,15 +9,15 @@ VALUES  ('M'),
 
 CREATE TABLE IF NOT EXISTS Utente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(30) NOT NULL,
+    username VARCHAR(30) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
     -- output length of the implemented hash function
     cognome VARCHAR(30) NOT NULL,
     nome VARCHAR(30) NOT NULL,
     data_nascita DATE NOT NULL,
     sesso CHAR(1) NOT NULL,
-    email VARCHAR(50),
-    telefono VARCHAR(15),
+    email VARCHAR(50) UNIQUE,
+    telefono VARCHAR(15) UNIQUE,
     FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS Assunzione (
     atleta INT UNSIGNED,
     PRIMARY KEY (ruolo, atleta),
     FOREIGN KEY (atleta) REFERENCES Atleta(utente) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (ruolo) REFERENCES Ruolo(nome) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (ruolo) REFERENCES Ruolo(nome) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
 CREATE TABLE IF NOT EXISTS Tutela (
@@ -75,5 +75,18 @@ CREATE TABLE IF NOT EXISTS Categoria (
     eta_min TINYINT UNSIGNED NOT NULL,
     eta_max TINYINT UNSIGNED NOT NULL,
     sesso CHAR(1),
-    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
+    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT eta_min_max CHECK(eta_min < eta_max)
+);
+
+CREATE TABLE IF NOT EXISTS Squadra (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    categoria VARCHAR(4) NOT NULL,
+    stagione SMALLINT UNSIGNED NOT NULL,
+    anno_min SMALLINT UNSIGNED NOT NULL,
+    anno_max SMALLINT UNSIGNED NOT NULL,
+    CONSTRAINT anno_min_max CHECK(anno_min < anno_max),
+    CONSTRAINT categoria_stagione UNIQUE (categoria, stagione),
+    FOREIGN KEY (categoria) REFERENCES Categoria(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (stagione) REFERENCES Stagione(anno_inizio) ON DELETE NO ACTION ON UPDATE CASCADE
 );

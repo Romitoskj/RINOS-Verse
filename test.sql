@@ -1,0 +1,10 @@
+CREATE OR REPALCE TABLE Categoria (
+    id VARCHAR(4) PRIMARY KEY,
+    nome VARCHAR(20) NOT NULL,
+    tipo ENUM('RUGBY', 'MINIRUGBY') NOT NULL,
+    eta_min TINYINT UNSIGNED NOT NULL,
+    eta_max TINYINT UNSIGNED NOT NULL,
+    sesso CHAR(1),
+    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT eta_min_max CHECK(eta_min < eta_max)
+);
