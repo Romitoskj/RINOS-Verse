@@ -7,7 +7,7 @@ VALUES  ('M'),
         ('F');
 
 
-CREATE TABLE IF NOT EXISTS Utente (
+CREATE OR REPLACE TABLE Utente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(30) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS Utente (
     data_nascita DATE NOT NULL,
     sesso CHAR(1) NOT NULL,
     email VARCHAR(50) UNIQUE,
-    telefono VARCHAR(15) UNIQUE,
+    telefono VARCHAR(15) UNIQUE CHECK(telefono REGEXP '^[+]?([0-9]{6}[0-9]*)$'),
     FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
@@ -158,3 +158,42 @@ CREATE TABLE IF NOT EXISTS Allenamento (
     CONSTRAINT inizio_fine CHECK(TIME(data_ora_inizio) < ora_fine),
     FOREIGN KEY (stagione) REFERENCES Stagione(anno_inizio) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Partecipazione (
+    squadra INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (allenamento, squadra),
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Direzione (
+    allenatore INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (allenamento, allenatore),
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenatore) REFERENCES Allenatore(utente) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Presenza (
+    atleta INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (allenamento, atleta),
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (atleta) REFERENCES Atleta(utente) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Report (
+    allenamento INT UNSIGNED PRIMARY KEY,
+    autore INT UNSIGNED NOT NULL,
+    valutazione INT NOT NULL CHECK(valutazione > 0 AND valutazione <= 10),
+    note TEXT,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Etichetta (
+    testo VARCHAR(30) PRIMARY KEY CHECK(testo RLIKE '[A-Za-z0-9]')
+);
+
+ALTER TABLE utente
+ADD CONSTRAINT email_format  ;
