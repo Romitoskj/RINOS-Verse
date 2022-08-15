@@ -23,8 +23,8 @@ CREATE OR REPLACE TABLE Utente (
     email VARCHAR(50) UNIQUE,
     telefono VARCHAR(15) UNIQUE,
     FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT `numero_tel` CHECK (`telefono` regexp '^[+]?([0-9]{6}[0-9]*)$'),
-    CONSTRAINT `email_format` CHECK (`email` regexp '^[A-Za-z0-9][A-Za-z0-9-.]+[A-Za-z0-9]@([A-Za-z0-9-]+.)+[A-Za-z0-9]+')
+    CONSTRAINT `numero_tel` CHECK (`telefono` REGEXP '^[+]?([0-9]{6}[0-9]*)$'),
+    CONSTRAINT `email_format` CHECK (`email` REGEXP '^[A-Za-z0-9][A-Za-z0-9-.]+[A-Za-z0-9]@([A-Za-z0-9-]+.)+[A-Za-z0-9]+')
 );
 
 CREATE TABLE IF NOT EXISTS Atleta (
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS Report (
 );
 
 CREATE TABLE IF NOT EXISTS Etichetta (
-    testo VARCHAR(30) PRIMARY KEY CHECK(testo RLIKE '[A-Za-z0-9]')
+    testo VARCHAR(30) PRIMARY KEY CHECK(testo REGEXP '[A-Za-z0-9]')
 );
 
 CREATE TABLE IF NOT EXISTS Obiettivo (
