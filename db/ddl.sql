@@ -1,3 +1,7 @@
+--
+--  DEFINIZIONE DELLE TABELLE
+--
+
 CREATE TABLE IF NOT EXISTS Sesso (
     value CHAR(1) PRIMARY KEY
 );
@@ -17,8 +21,10 @@ CREATE OR REPLACE TABLE Utente (
     data_nascita DATE NOT NULL,
     sesso CHAR(1) NOT NULL,
     email VARCHAR(50) UNIQUE,
-    telefono VARCHAR(15) UNIQUE CHECK(telefono REGEXP '^[+]?([0-9]{6}[0-9]*)$'),
-    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION
+    telefono VARCHAR(15) UNIQUE,
+    FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `numero_tel` CHECK (`telefono` regexp '^[+]?([0-9]{6}[0-9]*)$'),
+    CONSTRAINT `email_format` CHECK (`email` regexp '^[A-Za-z0-9][A-Za-z0-9-.]+[A-Za-z0-9]@([A-Za-z0-9-]+.)+[A-Za-z0-9]+')
 );
 
 CREATE TABLE IF NOT EXISTS Atleta (
@@ -163,7 +169,7 @@ CREATE TABLE IF NOT EXISTS Partecipazione (
     squadra INT UNSIGNED,
     allenamento INT UNSIGNED,
     PRIMARY KEY (allenamento, squadra),
-    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -171,7 +177,7 @@ CREATE TABLE IF NOT EXISTS Direzione (
     allenatore INT UNSIGNED,
     allenamento INT UNSIGNED,
     PRIMARY KEY (allenamento, allenatore),
-    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (allenatore) REFERENCES Allenatore(utente) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -195,5 +201,98 @@ CREATE TABLE IF NOT EXISTS Etichetta (
     testo VARCHAR(30) PRIMARY KEY CHECK(testo RLIKE '[A-Za-z0-9]')
 );
 
-ALTER TABLE utente
-ADD CONSTRAINT email_format  ;
+CREATE TABLE IF NOT EXISTS Obiettivo (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL,
+    squadra INT UNSIGNED NOT NULL,
+    raggiunto BOOLEAN NOT NULL,
+    descrizione TEXT NOT NULL,
+    scadenza DATE,
+    FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ClassificazioneObiettivo (
+    obiettivo INT UNSIGNED,
+    etichetta VARCHAR(30),
+    PRIMARY KEY (obiettivo, etichetta),
+    FOREIGN KEY (obiettivo) REFERENCES Obiettivo(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (etichetta) REFERENCES Etichetta(testo) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Scopo (
+    obiettivo INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (obiettivo, allenamento),
+    FOREIGN KEY (obiettivo) REFERENCES Obiettivo(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Domanda (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    testo VARCHAR(200) UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS ClassificazioneDomanda (
+    domanda INT UNSIGNED,
+    etichetta VARCHAR(30),
+    PRIMARY KEY (domanda, etichetta),
+    FOREIGN KEY (domanda) REFERENCES Domanda(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (etichetta) REFERENCES Etichetta(testo) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Composizione (
+    domanda INT UNSIGNED,
+    report INT UNSIGNED,
+    valutazione INT NOT NULL CHECK(valutazione > 0 AND valutazione <= 10),
+    PRIMARY KEY (domanda, report),
+    FOREIGN KEY (domanda) REFERENCES Domanda(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (report) REFERENCES Report(allenamento) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Esercizio (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE,
+    descrizione TEXT NOT NULL,
+    n_partecipanti TINYINT UNSIGNED,
+    link_video VARCHAR(200)
+);
+
+CREATE TABLE IF NOT EXISTS Eseguibilità (
+    categoria VARCHAR(4),
+    esercizio INT UNSIGNED,
+    PRIMARY KEY (categoria, esercizio),
+    FOREIGN KEY (categoria) REFERENCES Categoria(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (esercizio) REFERENCES Esercizio(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ClassificazioneEsercizio (
+    esercizio INT UNSIGNED,
+    etichetta VARCHAR(30),
+    PRIMARY KEY (esercizio, etichetta),
+    FOREIGN KEY (esercizio) REFERENCES Esercizio(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (etichetta) REFERENCES Etichetta(testo) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Programmazione (
+    esercizio INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (esercizio, allenamento),
+    FOREIGN KEY (esercizio) REFERENCES Esercizio(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Svolgimento (
+    esercizio INT UNSIGNED,
+    allenamento INT UNSIGNED,
+    PRIMARY KEY (esercizio, allenamento),
+    FOREIGN KEY (esercizio) REFERENCES Esercizio(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+--
+--  DEFINIZIONE TRIGGER
+--
+
+--
+--  DEFINIZIONE STORED PROCEDURE
+--
