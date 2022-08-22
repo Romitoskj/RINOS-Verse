@@ -303,6 +303,7 @@ BEGIN
 END;
 
 -- VINCOLO 1
+
 CREATE TRIGGER IF NOT EXISTS atleta_minorenne
 BEFORE INSERT ON Rosa
 FOR EACH ROW
@@ -317,6 +318,7 @@ BEGIN
 END;
 
 -- VINCOLO 2
+
 CREATE TRIGGER IF NOT EXISTS tutore_maggiorenne
 BEFORE INSERT ON Tutore
 FOR EACH ROW
@@ -344,6 +346,50 @@ BEGIN
     END IF;
 END;
 
+-- VINCOLO 3
+
+CREATE TRIGGER IF NOT EXISTS eta_sesso_atleta
+BEFORE INSERT ON Rosa
+FOR EACH ROW
+BEGIN
+    DECLARE anno_nascita INT;
+    DECLARE sesso CHAR(1);
+
+    SET anno_nascita = (SELECT YEAR(data_nascita) FROM Utente WHERE id = NEW.atleta);
+    SET sesso = (SELECT U.sesso FROM Utente AS U WHERE id = NEW.atleta);
+
+    IF anno_nascita > (SELECT anno_max FROM Squadra WHERE id = NEW.squadra)
+        OR anno_nascita < (SELECT anno_min FROM Squadra WHERE id = NEW.squadra) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'età dell'atleta non è adatta alla squadra";
+    END IF;
+
+    IF sesso <> (
+        SELECT C.sesso
+        FROM Categoria AS C JOIN Squadra AS S ON C.id = S.categoria
+        WHERE S.id = NEW.squadra
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Il sesso dell'atleta non è accettato dalla categoria";
+    END IF;
+END;
+
+-- VINCOLO 4
+CREATE TRIGGER IF NOT EXISTS insert_stagione_corrente
+BEFORE INSERT ON Stagione
+FOR EACH ROW
+BEGIN
+    IF NEW.corrente = 1 AND EXISTS (SELECT * FROM stagione WHERE corrente = 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "C'è già una stagione in corso";
+    END IF;
+END;
+
+CREATE TRIGGER IF NOT EXISTS update_stagione_corrente
+BEFORE UPDATE ON Stagione
+FOR EACH ROW
+BEGIN
+    IF NEW.corrente = 1 AND EXISTS (SELECT * FROM stagione WHERE corrente = 1) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "C'è già una stagione in corso";
+    END IF;
+END;
 
 --
 --  DEFINIZIONE STORED PROCEDURE
