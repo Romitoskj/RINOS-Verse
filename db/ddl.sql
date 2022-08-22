@@ -293,6 +293,58 @@ CREATE TABLE IF NOT EXISTS Svolgimento (
 --  DEFINIZIONE TRIGGER
 --
 
+CREATE FUNCTION IF NOT EXISTS getUserAge(user_id INT) RETURNS INT
+BEGIN
+    RETURN (
+        SELECT TIMESTAMPDIFF(YEAR, data_nascita, CURRENT_DATE())
+        FROM Utente
+        WHERE id = user_id -- restituirà un solo utente
+    );
+END;
+
+-- VINCOLO 1
+CREATE TRIGGER IF NOT EXISTS atleta_minorenne
+BEFORE INSERT ON Rosa
+FOR EACH ROW
+BEGIN
+    IF getUserAge(NEW.atleta) < 18 AND NOT EXISTS (
+        SELECT *
+        FROM Tutela 
+        WHERE atleta = NEW.atleta
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Un atleta deve essere maggiorenne o avere dei tutori per poter far parte di una rosa";
+    END IF;
+END;
+
+-- VINCOLO 2
+CREATE TRIGGER IF NOT EXISTS tutore_maggiorenne
+BEFORE INSERT ON Tutore
+FOR EACH ROW
+BEGIN
+    IF getUserAge(NEW.utente) < 18 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Un tutore deve essere maggiorenne";
+    END IF;
+END;
+
+CREATE TRIGGER IF NOT EXISTS allenatore_maggiorenne
+BEFORE INSERT ON Allenatore
+FOR EACH ROW
+BEGIN
+    IF getUserAge(NEW.utente) < 18 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Un allenatore deve essere maggiorenne";
+    END IF;
+END;
+
+CREATE TRIGGER IF NOT EXISTS dirigente_maggiorenne
+BEFORE INSERT ON Dirigente
+FOR EACH ROW
+BEGIN
+    IF getUserAge(NEW.utente) < 18 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Un dirigente deve essere maggiorenne";
+    END IF;
+END;
+
+
 --
 --  DEFINIZIONE STORED PROCEDURE
 --
