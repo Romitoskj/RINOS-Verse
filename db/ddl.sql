@@ -15,7 +15,7 @@ CREATE OR REPLACE TABLE Utente (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(30) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
-    -- output length of the implemented hash function
+    -- 60 character is the output length of the implemented hash function
     cognome VARCHAR(30) NOT NULL,
     nome VARCHAR(30) NOT NULL,
     data_nascita DATE NOT NULL,
