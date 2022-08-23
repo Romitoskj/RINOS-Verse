@@ -89,8 +89,8 @@ CREATE TABLE IF NOT EXISTS Squadra (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     categoria VARCHAR(4) NOT NULL,
     stagione SMALLINT UNSIGNED NOT NULL,
-    anno_min SMALLINT UNSIGNED NOT NULL,
-    anno_max SMALLINT UNSIGNED NOT NULL,
+    anno_min SMALLINT UNSIGNED,
+    anno_max SMALLINT UNSIGNED,
     CONSTRAINT anno_min_max CHECK(anno_min < anno_max),
     CONSTRAINT categoria_stagione UNIQUE (categoria, stagione),
     FOREIGN KEY (categoria) REFERENCES Categoria(id) ON DELETE NO ACTION ON UPDATE CASCADE,
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS Allenamento (
     via VARCHAR(50),
     civico SMALLINT,
     motivazione VARCHAR(120),
-    stagione SMALLINT UNSIGNED,
+    stagione SMALLINT UNSIGNED NOT NULL,
     CONSTRAINT inizio_fine CHECK(TIME(data_ora_inizio) < ora_fine),
     FOREIGN KEY (stagione) REFERENCES Stagione(anno_inizio) ON DELETE NO ACTION ON UPDATE CASCADE
 );
@@ -194,7 +194,8 @@ CREATE TABLE IF NOT EXISTS Report (
     autore INT UNSIGNED NOT NULL,
     valutazione INT NOT NULL CHECK(valutazione > 0 AND valutazione <= 10),
     note TEXT,
-    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE
+    FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (autore) REFERENCES Allenatore(utente) ON DELETE NO ACTION ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Etichetta (
@@ -290,7 +291,7 @@ CREATE TABLE IF NOT EXISTS Svolgimento (
 );
 
 --
---  DEFINIZIONE TRIGGER
+--  FUNZIONI DI UTILITA'
 --
 
 CREATE FUNCTION IF NOT EXISTS getUserAge(user_id INT) RETURNS INT
@@ -298,9 +299,22 @@ BEGIN
     RETURN (
         SELECT TIMESTAMPDIFF(YEAR, data_nascita, CURRENT_DATE())
         FROM Utente
-        WHERE id = user_id -- restituirà un solo utente
+        WHERE id = user_id
     );
 END;
+
+CREATE FUNCTION IF NOT EXISTS getCurrentSeason() RETURNS INT
+BEGIN
+    RETURN (
+        SELECT anno_inizio
+        FROM Stagione
+        WHERE corrente = 1
+    );
+END;
+
+--
+--  DEFINIZIONE TRIGGER
+--
 
 -- VINCOLO 1
 
@@ -373,6 +387,7 @@ BEGIN
 END;
 
 -- VINCOLO 4
+
 CREATE TRIGGER IF NOT EXISTS insert_stagione_corrente
 BEFORE INSERT ON Stagione
 FOR EACH ROW
@@ -388,6 +403,187 @@ FOR EACH ROW
 BEGIN
     IF NEW.corrente = 1 AND EXISTS (SELECT * FROM stagione WHERE corrente = 1) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "C'è già una stagione in corso";
+    END IF;
+END;
+
+-- VINCOLO 5
+
+CREATE TRIGGER IF NOT EXISTS nuovo_evento
+BEFORE INSERT ON Evento
+FOR EACH ROW
+BEGIN
+    IF NEW.data_ora_inizio <= NOW() THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "La data selezionata non è corretta";
+    END IF;
+
+    IF NEW.annullato IS TRUE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'evento non può essere inserito come annullato";
+    END IF;
+
+    IF (
+        SELECT corrente 
+        FROM Squadra JOIN Stagione ON stagione = anno_inizio
+        WHERE id = NEW.squadra
+    ) IS FALSE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "La squadra non è attiva nella stagione corrente";
+    END IF;
+END;
+
+-- VINCOLO 6
+
+CREATE TRIGGER IF NOT EXISTS nuovo_allenamento
+BEFORE INSERT ON Allenamento
+FOR EACH ROW
+BEGIN
+    IF NEW.data_ora_inizio <= NOW() THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "La data selezionata non è corretta";
+    END IF;
+
+    IF NEW.stato <> 'PROGRAMMATO' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'allenamento non può essere inserito come annullato o svolto";
+    END IF;
+
+    IF (
+        SELECT corrente 
+        FROM Stagione
+        WHERE anno_inizio = NEW.stagione
+    ) IS FALSE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'allenamento deve far parte del calendario della stagione in corso";
+    END IF;
+END;
+
+-- VINCOLO 7
+
+CREATE TRIGGER IF NOT EXISTS invito_evento
+BEFORE INSERT ON invito
+FOR EACH ROW
+BEGIN
+    IF NEW.atleta NOT IN (
+        SELECT atleta
+        FROM rosa
+        WHERE squadra = NEW.squadra_ev
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'atleta deve far parte della squadra a cui l'evento afferisce";
+    END IF;
+END;
+
+-- VINCOLO 8
+
+CREATE TRIGGER IF NOT EXISTS presenza_allenamento
+BEFORE INSERT ON presenza
+FOR EACH ROW
+BEGIN
+    IF NEW.atleta NOT IN (
+        SELECT R.atleta
+        FROM Rosa AS R JOIN Partecipazione AS P ON R.squadra = P.squadra
+        WHERE P.allenamento = NEW.allenamento
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'atleta deve far parte di una delle squadre che partecipano all'allenamento";
+    END IF;
+END;
+
+-- VINCOLO 9
+
+CREATE TRIGGER IF NOT EXISTS recensione_allenamento
+BEFORE INSERT ON Report
+FOR EACH ROW
+BEGIN
+    IF 'SVOLTO' <> (SELECT stato FROM Allenamento WHERE id = NEW.allenamento) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Si possono recensire solo allenamenti svolti";
+    END IF;
+    
+    IF NEW.autore NOT IN (
+        SELECT allenatore
+        FROM Direzione 
+        WHERE allenamento = NEW.allenamento
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'autore della recensione deve aver diretto il relativo allenamento";
+    END IF;
+END;
+
+-- VINCOLO 10
+
+CREATE TRIGGER IF NOT EXISTS scopo_allenamento
+BEFORE INSERT ON Scopo
+FOR EACH ROW
+BEGIN
+    IF (SELECT raggiunto FROM Obiettivo WHERE id = NEW.obiettivo) IS TRUE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'obiettivo è già stato raggiunto";
+    END IF;
+
+    IF NEW.obiettivo NOT IN (
+        SELECT id
+        FROM Obiettivo
+        WHERE squadra IN (
+            SELECT squadra
+            FROM Partecipazione
+            WHERE allenamento = NEW.allenamento
+        )
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'obbiettivo non è assegnato ad una squadra che partecipa all'allenamento";
+    END IF;
+END;
+
+-- VINCOLO 11
+
+CREATE TRIGGER IF NOT EXISTS partecipazione_allenamento
+BEFORE INSERT ON Partecipazione
+FOR EACH ROW
+BEGIN
+    IF (
+        SELECT stagione
+        FROM Squadra
+        WHERE id = NEW.squadra
+    ) <> (
+        SELECT stagione
+        FROM Allenamento
+        WHERE id = NEW.allenamento
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "La squadra deve essere attiva nella stagione in cui si svolge l'allenamento";
+    END IF;
+END;
+
+-- VINCOLO 12
+
+CREATE TRIGGER IF NOT EXISTS anno_max_e_min_squadra
+BEFORE INSERT ON Squadra
+FOR EACH ROW
+BEGIN
+    SET NEW.anno_min = NEW.stagione - (SELECT eta_max FROM Categoria WHERE id = NEW.categoria);
+    SET NEW.anno_max = NEW.stagione - (SELECT eta_min FROM Categoria WHERE id = NEW.categoria);
+END;
+
+-- VINCOLO 13
+
+CREATE TRIGGER IF NOT EXISTS allenamento_svolto
+BEFORE UPDATE ON Allenamento
+FOR EACH ROW
+BEGIN
+    IF NEW.stato = 'SVOLTO' THEN
+        IF OLD.stato = 'ANNULLATO' THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Impossibile svolgere un allenamento annullato";
+        ELSEIF NOT EXISTS (SELECT * FROM Direzione WHERE allenamento = NEW.id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'allenamento non ha nessun allenatore che l'ha diretto";
+        ELSEIF NOT EXISTS (SELECT * FROM Presenza WHERE allenamento = NEW.id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'allenamento non ha nessun atleta presente";
+        ELSEIF NOT EXISTS (SELECT * FROM Svolgimento WHERE allenamento = NEW.id) THEN
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "L'allenamento non ha nessun esercizio svolto";
+        END IF;
+    END IF;
+END;
+
+-- VINCOLO 14
+
+CREATE TRIGGER IF NOT EXISTS sesso_categoria
+BEFORE INSERT ON Categoria
+FOR EACH ROW
+BEGIN
+    IF NEW.tipo = 'RUGBY' AND NEW.sesso IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Bisogna specificare il sesso degli atleti";
+    END IF;
+
+    IF NEW.tipo = 'MINIRUGBY' AND NEW.sesso IS NOT NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "Il sesso degli atleti non deve essere specificato";
     END IF;
 END;
 

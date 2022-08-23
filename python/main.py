@@ -7,21 +7,33 @@ if __name__ == '__main__':
         "user": "root",
         "password": "",
         "host": "localhost",
-        "database": "test"
+        "database": "rinos",
+        "autocommit": True # default false e conn.commit e rollback
     }
 
-    # conn = mariadb.connect(**connection_args)
-    # cur = conn.cursor()
-
-    # execute a query
-    # cur.execute("SELECT * FROM t;")
-
-    # get columns' name
-    # cols = [x[0] for x in cur.description]
+    try:
+        conn = mariadb.connect(**connection_args)
+    except mariadb.Error as e:
+        print(f"Error: {e}")
     
-    # print result of a query
-    # for id, is_true in cur:
-    #     print(id, is_true)
+    cur = conn.cursor()
+
+    try:
+        # execute a query
+        cur.execute("INSERT INTO squadra (categoria, stagione, anno_min, anno_max) VALUES ('ESEM', 2021, 0, 100);")
+        #cur.execute("SELECT ROW_COUNT();")
+        #print(cur.fetchall())
+
+        # get columns' name
+        # cols = [x[0] for x in cur.description]
+        #cur.execute("SELECT * FROM squadra")
+        # print result of a query
+        #for squadra in cur:
+        #    print(squadra)
+
+    except mariadb.Error as e:
+        print(f"Error: {e}")
+
 
     # get number of affected rows
     # cur.execute("INSERT INTO T() VALUES(),(),();")
@@ -34,7 +46,7 @@ if __name__ == '__main__':
     # except mariadb.Error as e:
     #     print(f"Error: {e}")
     
-    # conn.close()
+    conn.close()
     
     psd = "la mia password"
     h = bcrypt.hashpw(str.encode(psd), bcrypt.gensalt())
