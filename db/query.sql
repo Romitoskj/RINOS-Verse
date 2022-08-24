@@ -11,6 +11,29 @@ WHERE utente = 3
         WHERE atleta = 3
     );
 
+/*
+-- VERSIONE SENZA SUBQUERY
+SELECT ATL.nome, ATL.cognome, ATL.email, ATL.telefono, TUT.nome AS nome_tutore,
+TUT.cognome AS cognome_tutore, TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
+FROM Utente AS ATL
+JOIN Atleta ON ATL.id = utente
+LEFT JOIN Tutela ON atleta = ATL.id
+LEFT JOIN Utente AS TUT ON TUT.id = tutore
+WHERE utente = 3;
+*/
+
+-- OPERAZIONE 1 CON VISTE
+
+CREATE OR REPLACE VIEW tutori_atleta_3 AS
+SELECT tutore
+FROM Tutela
+WHERE atleta = 3;
+
+SELECT nome, cognome, email, telefono
+FROM Utente LEFT JOIN Atleta ON id = utente
+WHERE utente = 3
+    OR id IN (SELECT * FROM tutori_atleta_3);
+
 -- OPERAZIONE 2
 -- Visualizzazione della percentuale di presenza agli allenamenti di ogni atleta
 -- facente parte della rosa di una determinata squadra.
@@ -34,7 +57,7 @@ GROUP BY P.atleta;
 
 -- OPERAZIONE 2 CON VISTE
 
-CREATE VIEW allenamenti_svolti_squadra_2 AS
+CREATE OR REPLACE VIEW allenamenti_svolti_squadra_2 AS
 SELECT COUNT(*)
 FROM Partecipazione
 JOIN Allenamento ON allenamento = id
