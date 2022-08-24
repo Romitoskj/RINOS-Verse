@@ -303,6 +303,7 @@ BEGIN
     );
 END;
 
+/*
 CREATE FUNCTION IF NOT EXISTS getCurrentSeason() RETURNS INT
 BEGIN
     RETURN (
@@ -311,17 +312,21 @@ BEGIN
         WHERE corrente = 1
     );
 END;
+*/
 
 --
 --  DEFINIZIONE TRIGGER
 --
 
 -- VINCOLO 1
+-- Un atleta minorenne deve avere almeno un tutore per poter partecipare ad una
+-- squadra.
 
 CREATE TRIGGER IF NOT EXISTS atleta_minorenne
 BEFORE INSERT ON Rosa
 FOR EACH ROW
 BEGIN
+-- l'implementazione di getUserAge viene riportata nella sezione 'Stored procedure'
     IF getUserAge(NEW.atleta) < 18 AND NOT EXISTS (
         SELECT *
         FROM Tutela 
@@ -332,6 +337,7 @@ BEGIN
 END;
 
 -- VINCOLO 2
+-- Tutori, allenatori e dirigenti devono essere maggiorenni.
 
 CREATE TRIGGER IF NOT EXISTS tutore_maggiorenne
 BEFORE INSERT ON Tutore
@@ -361,6 +367,9 @@ BEGIN
 END;
 
 -- VINCOLO 3
+-- Un atleta può far parte di una squadra solo se il suo anno di nascita è
+-- compreso tra l’anno di nascita minimo e il massimo definito dalla squadra e
+-- il suo sesso è ammesso dalla categoria di cui la squadra fa parte.
 
 CREATE TRIGGER IF NOT EXISTS eta_sesso_atleta
 BEFORE INSERT ON Rosa
@@ -387,6 +396,7 @@ BEGIN
 END;
 
 -- VINCOLO 4
+-- In un qualsiasi istante deve esserci al più una stagione in corso.
 
 CREATE TRIGGER IF NOT EXISTS insert_stagione_corrente
 BEFORE INSERT ON Stagione
@@ -407,6 +417,10 @@ BEGIN
 END;
 
 -- VINCOLO 5
+-- I nuovi eventi inseriti devono avere una data e ora di inizio successiva
+-- rispetto a quella in cui viene effettuato l’inserimento, non possono essere
+-- inseriti come annullati, devono far parte del calendario della stagione
+-- corrente e le squadre a cui afferiscono devono essere attive in questa stagione.
 
 CREATE TRIGGER IF NOT EXISTS nuovo_evento
 BEFORE INSERT ON Evento
@@ -430,6 +444,10 @@ BEGIN
 END;
 
 -- VINCOLO 6
+-- I nuovi allenamenti inseriti devono essere nello stato “programmato” (non
+-- “annullato” o “svolto”),  avere una data e ora di inizio successiva rispetto
+-- a quella in cui viene effettuato l’inserimento e devono far parte del
+-- calendario della stagione corrente.
 
 CREATE TRIGGER IF NOT EXISTS nuovo_allenamento
 BEFORE INSERT ON Allenamento
@@ -453,6 +471,8 @@ BEGIN
 END;
 
 -- VINCOLO 7
+-- Gli atleti invitati ad un evento devono far parte della rosa della squadra a
+-- cui l'evento afferisce.
 
 CREATE TRIGGER IF NOT EXISTS invito_evento
 BEFORE INSERT ON invito
@@ -468,6 +488,8 @@ BEGIN
 END;
 
 -- VINCOLO 8
+-- Gli atleti presenti ad un allenamento devono far parte della rosa di almeno
+-- una delle squadre che vi partecipano.
 
 CREATE TRIGGER IF NOT EXISTS presenza_allenamento
 BEFORE INSERT ON presenza
@@ -483,6 +505,9 @@ BEGIN
 END;
 
 -- VINCOLO 9
+-- Un report deve recensire un allenamento nello stato “svolto” (non
+-- “programmato” o “annullato”) e il suo autore deve essere uno degli allenatori
+-- che l’hanno diretto.
 
 CREATE TRIGGER IF NOT EXISTS recensione_allenamento
 BEFORE INSERT ON Report
@@ -502,6 +527,9 @@ BEGIN
 END;
 
 -- VINCOLO 10
+-- Gli scopi di un allenamento devono essere selezionati tra gli obiettivi
+-- attivi (ossia non ancora raggiunti) delle squadre che parteciperanno
+-- all'allenamento.
 
 CREATE TRIGGER IF NOT EXISTS scopo_allenamento
 BEFORE INSERT ON Scopo
@@ -525,6 +553,8 @@ BEGIN
 END;
 
 -- VINCOLO 11
+-- Le squadre che partecipano ad un allenamento devono essere squadre in
+-- attività durante la stagione in cui l’allenamento ha luogo.
 
 CREATE TRIGGER IF NOT EXISTS partecipazione_allenamento
 BEFORE INSERT ON Partecipazione
@@ -544,6 +574,9 @@ BEGIN
 END;
 
 -- VINCOLO 12
+-- L'anno di nascita minimo e massimo dei componenti di una squadra si ottiene
+-- sottraendo all'anno di inizio della stagione in cui essa è attiva l'età
+-- minima e l'età massima della categoria di cui la squadra fa parte.
 
 CREATE TRIGGER IF NOT EXISTS anno_max_e_min_squadra
 BEFORE INSERT ON Squadra
@@ -554,6 +587,9 @@ BEGIN
 END;
 
 -- VINCOLO 13
+-- Un allenamento per essere contrassegnato come svolto deve avere almeno un
+-- allenatore che lo ha diretto, un atleta presente e un esercizio svolto.
+-- Inoltre non può essere contrassegnato come svolto se è stato annullato.
 
 CREATE TRIGGER IF NOT EXISTS allenamento_svolto
 BEFORE UPDATE ON Allenamento
@@ -573,6 +609,8 @@ BEGIN
 END;
 
 -- VINCOLO 14
+-- Le categorie del rugby devono avere il sesso degli atleti ammessi indicato,
+-- mentre quelle del minirugby devono non lo devono indicare.
 
 CREATE TRIGGER IF NOT EXISTS sesso_categoria
 BEFORE INSERT ON Categoria
