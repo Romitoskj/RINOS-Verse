@@ -11,7 +11,7 @@ WHERE utente = 3
         WHERE atleta = 3
     );
 
-/*
+
 -- VERSIONE SENZA SUBQUERY
 SELECT ATL.nome, ATL.cognome, ATL.email, ATL.telefono, TUT.nome AS nome_tutore,
 TUT.cognome AS cognome_tutore, TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
@@ -20,7 +20,7 @@ JOIN Atleta ON ATL.id = utente
 LEFT JOIN Tutela ON atleta = ATL.id
 LEFT JOIN Utente AS TUT ON TUT.id = tutore
 WHERE utente = 3;
-*/
+
 
 -- OPERAZIONE 1 CON VISTE
 
