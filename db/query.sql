@@ -140,7 +140,7 @@ AND (getUserAge(U.id) >= 18 OR EXISTS (
 ));
 
 -- OPERAZIONE 7
--- Visualizzazione dei prossimi allenamenti in programma E le relative squadre
+-- Visualizzazione dei prossimi allenamenti in programma e le relative squadre
 -- partecipanti.
 
 SELECT S.id AS squadra, A.*
@@ -174,6 +174,44 @@ WHERE A.data_ora_inizio > NOW() AND A.stato = 'PROGRAMMATO';
 -- Selezionamento della domanda che ha ricevuto più risposte per ogni etichetta.
 
 -- OPERAZIONE 14
--- Visualizzazione degli allenamenti e degli eventi, in programma nel mese in
--- cui viene effettuata la richiesta, a cui un atleta può partecipare ordinati 
--- cronologicamente.
+-- Visualizzazione del calendario degli allenamenti e degli eventi in programma
+-- nel successivo mese a cui un atleta può partecipare.
+
+SELECT nome, squadra, data_ora_inizio, id_allenamento
+FROM (
+    SELECT squadra, 'Allenamento' AS nome, data_ora_inizio, id AS id_allenamento
+    FROM Allenamento JOIN Partecipazione ON allenamento = id
+    WHERE stato = 'PROGRAMMATO'
+    UNION
+    SELECT squadra, nome, data_ora_inizio, NULL AS id_allenamento
+    FROM Evento
+    WHERE annullato IS FALSE
+) AS Calendario
+WHERE data_ora_inizio BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 1 MONTH)
+AND squadra IN (
+    SELECT squadra
+    FROM Rosa AS R
+    WHERE atleta = 24
+)
+ORDER BY data_ora_inizio;
+
+-- OPERAZIONE 14 CON LE VISTE
+
+CREATE OR REPLACE VIEW Calendario AS
+SELECT squadra, 'Allenamento' AS nome, data_ora_inizio, id AS id_allenamento
+FROM Allenamento JOIN Partecipazione ON allenamento = id
+WHERE stato = 'PROGRAMMATO'
+UNION
+SELECT squadra, nome, data_ora_inizio, NULL AS id_allenamento
+FROM Evento
+WHERE annullato IS FALSE
+
+SELECT nome, squadra, data_ora_inizio, id_allenamento
+FROM Calendario
+WHERE data_ora_inizio BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 1 MONTH)
+AND squadra IN (
+    SELECT squadra
+    FROM Rosa AS R
+    WHERE atleta = 24
+)
+ORDER BY data_ora_inizio;
