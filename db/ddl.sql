@@ -303,17 +303,6 @@ BEGIN
     );
 END;
 
-/*
-CREATE FUNCTION IF NOT EXISTS getCurrentSeason() RETURNS INT
-BEGIN
-    RETURN (
-        SELECT anno_inizio
-        FROM Stagione
-        WHERE corrente = 1
-    );
-END;
-*/
-
 --
 --  DEFINIZIONE TRIGGER
 --

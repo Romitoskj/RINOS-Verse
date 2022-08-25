@@ -2,37 +2,26 @@
 -- Visualizzazione dei contatti di un atleta e, se ne ha, anche quelli dei suoi
 -- tutori.
 
-SELECT nome, cognome, email, telefono
-FROM Utente LEFT JOIN Atleta ON id = utente
-WHERE utente = 3
-    OR id IN (
-        SELECT tutore
-        FROM Tutela
-        WHERE atleta = 3
-    );
-
-
--- VERSIONE SENZA SUBQUERY
-SELECT ATL.nome, ATL.cognome, ATL.email, ATL.telefono, TUT.nome AS nome_tutore,
-TUT.cognome AS cognome_tutore, TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
+SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
+    TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
+    TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
 FROM Utente AS ATL
 JOIN Atleta ON ATL.id = utente
 LEFT JOIN Tutela ON atleta = ATL.id
 LEFT JOIN Utente AS TUT ON TUT.id = tutore
-WHERE utente = 3;
+WHERE ATL.id = 3;
 
+-- SI DEFINISCE UNA VISTA CHE ESTRAE I CONTATTI DI TUTTI GLI ATLETI E RELATIVI
+-- TUTORI PER FACILITARE L'OPERAZIONE 4
 
--- OPERAZIONE 1 CON VISTE
-
-CREATE OR REPLACE VIEW tutori_atleta_3 AS
-SELECT tutore
-FROM Tutela
-WHERE atleta = 3;
-
-SELECT nome, cognome, email, telefono
-FROM Utente LEFT JOIN Atleta ON id = utente
-WHERE utente = 3
-    OR id IN (SELECT * FROM tutori_atleta_3);
+CREATE OR REPLACE VIEW contatti_atleti_tutori AS
+SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
+    TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
+    TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
+FROM Utente AS ATL
+JOIN Atleta ON ATL.id = utente
+LEFT JOIN Tutela ON atleta = ATL.id
+LEFT JOIN Utente AS TUT ON TUT.id = tutore;
 
 -- OPERAZIONE 2
 -- Visualizzazione della percentuale di presenza agli allenamenti di ogni atleta
@@ -57,14 +46,19 @@ GROUP BY P.atleta;
 
 -- OPERAZIONE 2 CON VISTE
 
-CREATE OR REPLACE VIEW allenamenti_svolti_squadra_2 AS
-SELECT COUNT(*)
+CREATE OR REPLACE VIEW numero_allenamenti_svolti_squadre AS
+SELECT squadra, COUNT(*) AS numero
 FROM Partecipazione
 JOIN Allenamento ON allenamento = id
-WHERE squadra = 2
-AND stato = 'SVOLTO';
+WHERE stato = 'SVOLTO'
+GROUP BY squadra;
 
-SELECT U.username, COUNT(*) / (SELECT * FROM allenamenti_svolti_squadra_2) * 100 AS percentuale
+SELECT U.username,
+    COUNT(*) / (
+        SELECT numero
+        FROM numero_allenamenti_svolti_squadre
+        WHERE squadra = 2
+    ) * 100 AS percentuale
 FROM Presenza AS P
 JOIN Utente AS U ON P.atleta = U.id
 JOIN Allenamento AS A ON P.allenamento = A.id
@@ -85,8 +79,8 @@ SELECT E.nome AS evento,
     E.squadra AS squadra,
     E.data_ora_inizio AS data_ora,
     COUNT(*) AS totale,
-    SUM(CASE WHEN I.presenza = 1 THEN 1 ELSE 0 END) AS presenti,
-    SUM(CASE WHEN I.presenza = 0 THEN 1 ELSE 0 END) AS assenti,
+    SUM(CASE WHEN I.presenza THEN 1 ELSE 0 END) AS presenti,
+    SUM(CASE WHEN NOT I.presenza THEN 1 ELSE 0 END) AS assenti,
     SUM(CASE WHEN I.presenza IS NULL THEN 1 ELSE 0 END) AS senza_risposta
 FROM Invito AS I
 JOIN Evento AS E ON I.squadra_ev = E.squadra AND I.data_ev = E.data_ora_inizio
@@ -95,20 +89,65 @@ WHERE E.data_ora_inizio > NOW() AND A.allenatore = 22 AND E.annullato IS FALSE
 GROUP BY E.squadra, E.data_ora_inizio
 ORDER BY E.data_ora_inizio;
 
--- OPERAZIONE 4
+-- OPERAZIONE 4 (utilizza la vista definita nella operazione 1)
 -- Visualizzazione dei contatti degli atleti che non hanno intenzione di
 -- partecipare ad un evento futuro, o che non hanno risposto all'invito.
 
+SELECT *
+FROM contatti_atleti_tutori
+WHERE atleta IN (
+    SELECT atleta
+    FROM Invito
+    WHERE squadra_ev = 2 AND data_ev = '2022-09-11 11:30:00'
+        AND (NOT presenza OR presenza IS NULL)
+);
+
+-- OPERAZIONE 4 CON ULTERIORE VISTA
+
+CREATE OR REPLACE VIEW inviti_senza_risposta_o_assenti AS
+SELECT *
+FROM Invito
+WHERE NOT presenza OR presenza IS NULL;
+
+SELECT *
+FROM contatti_atleti_tutori
+WHERE atleta IN (
+    SELECT atleta
+    FROM inviti_senza_risposta_o_assenti
+    WHERE squadra_ev = 2 AND data_ev = '2022-09-11 11:30:00'
+);
+
 -- OPERAZIONE 5
--- Calcolo della qualità media degli allenamenti di una squadra in base alla
--- valutazione generale.
+-- Calcolo della qualità media degli allenamenti delle squadre sulla base delle
+-- valutazioni generali.
 
 -- OPERAZIONE 6
--- Visualizzazione delle possibili squadre a cui un atleta può partecipare, per
--- permettere l’inserimento dell’atleta nella rosa di una squadra.
+-- Visualizzazione delle possibili squadre a cui gli atleti possono partecipare,
+-- per facilitare l’inserimento degli atleti nelle varie rose (considerando che
+-- gli atleti minorenni possono partecipare ad una squadra solo se hanno almeno
+-- un tutore).
+
+SELECT U.id AS atleta, S.id AS squadra
+FROM Utente AS U
+JOIN Atleta AS A ON A.utente = U.id
+JOIN Squadra AS S ON YEAR(U.data_nascita) BETWEEN S.anno_min AND S.anno_max
+JOIN Categoria AS C ON S.categoria = C.id AND (U.sesso = C.sesso OR C.sesso IS NULL)
+WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+AND (getUserAge(U.id) >= 18 OR EXISTS (
+    SELECT *
+    FROM Tutela
+    WHERE atleta = U.id
+));
 
 -- OPERAZIONE 7
--- Visualizzazione dei prossimi allenamenti programmati di una squadra.
+-- Visualizzazione dei prossimi allenamenti in programma E le relative squadre
+-- partecipanti.
+
+SELECT S.id AS squadra, A.*
+FROM Squadra AS S
+JOIN Partecipazione AS P ON P.squadra = S.id
+JOIN Allenamento AS A ON A.id = P.allenamento
+WHERE A.data_ora_inizio > NOW() AND A.stato = 'PROGRAMMATO';
 
 -- OPERAZIONE 8
 -- Visualizzazione degli allenamenti che gli atleti tutelati da un dato tutore
