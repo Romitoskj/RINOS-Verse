@@ -81,9 +81,23 @@ GROUP BY P.atleta;
 -- risposto all'invito per ogni evento futuro amministrato da uno specifico
 -- allenatore.
 
+SELECT E.nome AS evento,
+    E.squadra AS squadra,
+    E.data_ora_inizio AS data_ora,
+    COUNT(*) AS totale,
+    SUM(CASE WHEN I.presenza = 1 THEN 1 ELSE 0 END) AS presenti,
+    SUM(CASE WHEN I.presenza = 0 THEN 1 ELSE 0 END) AS assenti,
+    SUM(CASE WHEN I.presenza IS NULL THEN 1 ELSE 0 END) AS senza_risposta
+FROM Invito AS I
+JOIN Evento AS E ON I.squadra_ev = E.squadra AND I.data_ev = E.data_ora_inizio
+JOIN Amministrazione AS A ON A.squadra_ev = E.squadra AND A.data_ev = E.data_ora_inizio
+WHERE E.data_ora_inizio > NOW() AND A.allenatore = 22 AND E.annullato IS FALSE
+GROUP BY E.squadra, E.data_ora_inizio
+ORDER BY E.data_ora_inizio;
+
 -- OPERAZIONE 4
 -- Visualizzazione dei contatti degli atleti che non hanno intenzione di
--- partecipare ad un evento futuro.
+-- partecipare ad un evento futuro, o che non hanno risposto all'invito.
 
 -- OPERAZIONE 5
 -- Calcolo della qualità media degli allenamenti di una squadra in base alla
