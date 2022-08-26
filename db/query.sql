@@ -158,6 +158,24 @@ WHERE A.data_ora_inizio > NOW() AND A.stato = 'PROGRAMMATO';
 -- Visualizzazione degli allenamenti che gli atleti tutelati da un dato tutore
 -- hanno in programma.
 
+-- si utilizza l'operazione precedente come vista
+
+CREATE OR REPLACE VIEW allenamenti_programmati_squadre AS
+SELECT S.id AS squadra, A.*
+FROM Squadra AS S
+JOIN Partecipazione AS P ON P.squadra = S.id
+JOIN Allenamento AS A ON A.id = P.allenamento
+WHERE A.data_ora_inizio > NOW() AND A.stato = 'PROGRAMMATO';
+
+SELECT U.id AS id_atleta, U.nome AS atleta, APS.id AS id_allenamento,
+    APS.data_ora_inizio AS data_e_ora
+FROM allenamenti_programmati_squadre AS APS 
+JOIN Rosa AS R ON R.squadra = APS.squadra
+JOIN Utente AS U ON U.id = R.atleta
+JOIN Tutela AS T ON T.atleta = R.atleta
+WHERE T.tutore = 9;
+
+
 -- OPERAZIONE 9
 -- Visualizzazione degli esercizi consigliati dato un allenamento con squadre
 -- partecipanti e degli scopi inseriti, in modo da facilitare la programmazione
@@ -209,7 +227,7 @@ WHERE stato = 'PROGRAMMATO'
 UNION
 SELECT squadra, nome, data_ora_inizio, NULL AS id_allenamento
 FROM Evento
-WHERE annullato IS FALSE
+WHERE annullato IS FALSE;
 
 SELECT nome, squadra, data_ora_inizio, id_allenamento
 FROM Calendario
