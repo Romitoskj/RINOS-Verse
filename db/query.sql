@@ -1,9 +1,20 @@
+/*  
+
+NOTA: tutte le operazioni che richiedono dei dati specifici, ad esempio l'id di
+un atleta, dipenderanno dal contenuto di variabili utilizzate nell'applicazione
+finale.
+    
+Pertanto i valori usati nelle interrogazioni sono da interpretare come placeholder.
+
+*/
+
+
 -- OPERAZIONE 1
 -- Visualizzazione dei contatti di un atleta e, se ne ha, anche quelli dei suoi
 -- tutori.
 
 SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
-    TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
+    tutore, TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
     TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
 FROM Utente AS ATL
 JOIN Atleta ON ATL.id = utente
@@ -16,7 +27,7 @@ WHERE ATL.id = 3;
 
 CREATE OR REPLACE VIEW contatti_atleti_tutori AS
 SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
-    TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
+    tutore, TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
     TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
 FROM Utente AS ATL
 JOIN Atleta ON ATL.id = utente
@@ -173,8 +184,8 @@ FROM allenamenti_programmati_squadre AS APS
 JOIN Rosa AS R ON R.squadra = APS.squadra
 JOIN Utente AS U ON U.id = R.atleta
 JOIN Tutela AS T ON T.atleta = R.atleta
-WHERE T.tutore = 9;
-
+WHERE T.tutore = 9
+ORDER BY APS.data_ora_inizio;
 
 -- OPERAZIONE 9
 -- Visualizzazione degli esercizi consigliati dato un allenamento con squadre
@@ -190,8 +201,62 @@ WHERE T.tutore = 9;
 -- appaiono domande nei report degli allenamenti.
 
 -- OPERAZIONE 12
--- Calcolo dell’incremento (o decremento) della qualità degli allenamenti di una
--- squadra in un dato mese rispetto al precedente.
+-- Calcolo dell’incremento (o decremento) della qualità degli allenamenti in un
+-- dato mese rispetto ad un qualsiasi mese precedente, per tutte squadre attive 
+-- nella stagione in corso.
+
+SELECT LUGLIO.squadra,
+    LUGLIO.valutazione_media - IFNULL(GIUGNO.valutazione_media, 0) AS incremento_qualità
+FROM (
+    SELECT squadra,
+        MONTH(data_ora_inizio) AS mese,
+        AVG(valutazione) AS valutazione_media
+    FROM Report AS R
+    JOIN Partecipazione AS P ON P.allenamento = R.allenamento
+    JOIN Allenamento AS A ON A.id = R.allenamento
+    JOIN Squadra AS S ON S.id = P.squadra
+    WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+    GROUP BY squadra, MONTH(data_ora_inizio)
+    HAVING mese = 7
+) AS LUGLIO
+LEFT JOIN (
+    SELECT squadra,
+        MONTH(data_ora_inizio) AS mese,
+        AVG(valutazione) AS valutazione_media
+    FROM Report AS R
+    JOIN Partecipazione AS P ON P.allenamento = R.allenamento
+    JOIN Allenamento AS A ON A.id = R.allenamento
+    JOIN Squadra AS S ON S.id = P.squadra
+    WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+    GROUP BY squadra, MONTH(data_ora_inizio)
+    HAVING mese = 6
+) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
+
+-- OPERAZIONE 12 CON LE VISTE
+
+CREATE OR REPLACE VIEW valutazioni_medie_squadre_per_mese AS
+SELECT squadra,
+    MONTH(data_ora_inizio) AS mese,
+    AVG(valutazione) AS valutazione_media
+FROM Report AS R
+JOIN Partecipazione AS P ON P.allenamento = R.allenamento
+JOIN Allenamento AS A ON A.id = R.allenamento
+JOIN Squadra AS S ON S.id = P.squadra
+WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+GROUP BY squadra, MONTH(data_ora_inizio);
+
+SELECT LUGLIO.squadra,
+    LUGLIO.valutazione_media - IFNULL(GIUGNO.valutazione_media, 0) AS incremento_qualità
+FROM (
+    SELECT *
+    FROM valutazioni_medie_squadre_per_mese
+    WHERE mese = 7
+) AS LUGLIO
+LEFT JOIN (
+    SELECT *
+    FROM valutazioni_medie_squadre_per_mese
+    WHERE mese = 6
+) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
 -- OPERAZIONE 13
 -- Selezionamento della domanda che ha ricevuto più risposte per ogni etichetta.
