@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS Obiettivo (
     nome VARCHAR(50) NOT NULL,
     squadra INT UNSIGNED NOT NULL,
     raggiunto BOOLEAN NOT NULL,
-    descrizione TEXT NOT NULL,
+    descrizione TEXT,
     scadenza DATE,
     FOREIGN KEY (squadra) REFERENCES Squadra(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -258,7 +258,7 @@ CREATE TABLE IF NOT EXISTS Esercizio (
     link_video VARCHAR(200)
 );
 
-CREATE TABLE IF NOT EXISTS Eseguibilità (
+CREATE TABLE IF NOT EXISTS Eseguibilita (
     categoria VARCHAR(4),
     esercizio INT UNSIGNED,
     PRIMARY KEY (categoria, esercizio),

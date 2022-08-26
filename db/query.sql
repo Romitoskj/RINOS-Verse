@@ -192,15 +192,26 @@ ORDER BY APS.data_ora_inizio;
 -- partecipanti e degli scopi inseriti, in modo da facilitare la programmazione
 -- di un allenamento.
 
+SELECT DISTINCT E.*
+FROM Esercizio AS E
+JOIN ClassificazioneEsercizio AS CE ON CE.esercizio = E.id
+JOIN Eseguibilita AS ES ON ES.esercizio = E.id
+WHERE EXISTS (
+    SELECT *
+    FROM Scopo AS S
+    JOIN ClassificazioneObiettivo AS CO ON CO.obiettivo = S.obiettivo
+    JOIN Partecipazione AS P ON P.allenamento = S.allenamento
+    JOIN Squadra AS Sq ON Sq.id = P.squadra
+    WHERE S.allenamento = 22
+        AND CO.etichetta = CE.etichetta
+        AND Sq.categoria = ES.categoria
+);
+
 -- OPERAZIONE 10
 -- Visualizzazione delle domande a cui è possibile rispondere in un report in
 -- base agli esercizi svolti durante l’allenamento.
 
--- OPERAZIONE 11
--- Calcolo della valutazione media di una squadra per ogni etichetta di cui
--- appaiono domande nei report degli allenamenti.
-
--- OPERAZIONE 12
+-- OPERAZIONE 11 ex 12
 -- Calcolo dell’incremento (o decremento) della qualità degli allenamenti in un
 -- dato mese rispetto ad un qualsiasi mese precedente, per tutte squadre attive 
 -- nella stagione in corso.
@@ -232,7 +243,7 @@ LEFT JOIN (
     HAVING mese = 6
 ) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
--- OPERAZIONE 12 CON LE VISTE
+-- OPERAZIONE 11 EX 12 CON LE VISTE
 
 CREATE OR REPLACE VIEW valutazioni_medie_squadre_per_mese AS
 SELECT squadra,
@@ -258,10 +269,10 @@ LEFT JOIN (
     WHERE mese = 6
 ) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
--- OPERAZIONE 13
+-- OPERAZIONE 12 ex 13
 -- Selezionamento della domanda che ha ricevuto più risposte per ogni etichetta.
 
--- OPERAZIONE 14
+-- OPERAZIONE 13 ex 14
 -- Visualizzazione del calendario degli allenamenti e degli eventi in programma
 -- nel successivo mese a cui un atleta può partecipare.
 
@@ -283,7 +294,7 @@ AND squadra IN (
 )
 ORDER BY data_ora_inizio;
 
--- OPERAZIONE 14 CON LE VISTE
+-- OPERAZIONE 13 EX 14 CON LE VISTE
 
 CREATE OR REPLACE VIEW Calendario AS
 SELECT squadra, 'Allenamento' AS nome, data_ora_inizio, id AS id_allenamento
