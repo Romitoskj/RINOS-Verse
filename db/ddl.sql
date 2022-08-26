@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS Presenza (
 CREATE TABLE IF NOT EXISTS Report (
     allenamento INT UNSIGNED PRIMARY KEY,
     autore INT UNSIGNED NOT NULL,
-    valutazione INT NOT NULL CHECK(valutazione > 0 AND valutazione <= 10),
+    valutazione INT NOT NULL CHECK(valutazione >= 0 AND valutazione <= 10),
     note TEXT,
     FOREIGN KEY (allenamento) REFERENCES Allenamento(id) ON DELETE NO ACTION ON UPDATE CASCADE,
     FOREIGN KEY (autore) REFERENCES Allenatore(utente) ON DELETE NO ACTION ON UPDATE CASCADE

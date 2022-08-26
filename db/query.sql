@@ -121,6 +121,11 @@ WHERE atleta IN (
 -- Calcolo della qualità media degli allenamenti delle squadre sulla base delle
 -- valutazioni generali.
 
+SELECT squadra, AVG(valutazione) AS qualità_media
+FROM Report AS R
+JOIN Partecipazione AS P ON P.allenamento = R.allenamento
+GROUP BY squadra;
+
 -- OPERAZIONE 6
 -- Visualizzazione delle possibili squadre a cui gli atleti possono partecipare,
 -- per facilitare l’inserimento degli atleti nelle varie rose (considerando che

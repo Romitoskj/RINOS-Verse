@@ -1,7 +1,7 @@
 import mariadb
 import bcrypt
 
-
+# TODO classe utente e sotto classe per ogni tipologia
 if __name__ == '__main__':
     connection_args = {
         "user": "root",
