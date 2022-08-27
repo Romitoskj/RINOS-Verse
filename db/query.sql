@@ -89,8 +89,9 @@ GROUP BY E.squadra, E.data_ora_inizio
 ORDER BY E.data_ora_inizio;
 
 -- OPERAZIONE 4 (utilizza la vista definita nella operazione 1)
--- Visualizzazione dei contatti degli atleti che non hanno intenzione di
--- partecipare ad un evento futuro, o che non hanno risposto all'invito.
+-- Visualizzazione dei contatti degli atleti (e dei tutori) che non hanno
+-- intenzione di partecipare ad un evento futuro, o che non hanno risposto
+-- all'invito.
 
 -- SI DEFINISCE UNA VISTA BASATA SULL'OPERAZIONE 1 PER FACILITARE L'INTERROGAZIONE
 
@@ -187,9 +188,9 @@ WHERE T.tutore = 9
 ORDER BY APS.data_ora_inizio;
 
 -- OPERAZIONE 9
--- Visualizzazione degli esercizi consigliati dato un allenamento con squadre
--- partecipanti e degli scopi inseriti, in modo da facilitare la programmazione
--- di un allenamento.
+-- Visualizzazione degli esercizi consigliati per un allenamento basandosi sulle
+-- squadre partecipanti e sugli scopi, in modo da facilitare la sua
+-- programmazione.
 
 SELECT DISTINCT E.*
 FROM Esercizio AS E
@@ -293,7 +294,9 @@ LEFT JOIN (
 ) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
 -- OPERAZIONE 12
--- Selezionamento della domanda che ha ricevuto più risposte per ogni etichetta.
+-- Selezionamento della domanda (o delle domande in caso di parità) che ha
+-- ricevuto più risposte nei report per ogni etichetta, con relativo numero di
+-- risposte.
 
 SELECT CD.etichetta, D.testo, COUNT(*) AS numero_risposte
 FROM Domanda AS D
