@@ -208,10 +208,22 @@ WHERE EXISTS (
 );
 
 -- OPERAZIONE 10
--- Visualizzazione delle domande a cui è possibile rispondere in un report in
--- base agli esercizi svolti durante l’allenamento.
+-- Visualizzazione delle domande a cui è possibile rispondere in un report a
+-- seconda degli esercizi svolti durante il relativo allenamento, ordinandole
+-- poi per rilevanza (ossia più una domanda ha etichette in comune con gli
+-- esercizi prima apparirà).
 
--- OPERAZIONE 11 ex 12
+SELECT D.*
+FROM Svolgimento AS S
+JOIN ClassificazioneEsercizio AS CE ON CE.esercizio = S.esercizio
+JOIN ClassificazioneDomanda AS CD ON CD.etichetta = CE.etichetta
+JOIN Domanda AS D ON D.id = CD.domanda
+WHERE S.allenamento = 21
+GROUP BY domanda
+ORDER BY COUNT(*) DESC;
+
+
+-- OPERAZIONE 11
 -- Calcolo dell’incremento (o decremento) della qualità degli allenamenti in un
 -- dato mese rispetto ad un qualsiasi mese precedente, per tutte squadre attive 
 -- nella stagione in corso.
@@ -226,7 +238,11 @@ FROM (
     JOIN Partecipazione AS P ON P.allenamento = R.allenamento
     JOIN Allenamento AS A ON A.id = R.allenamento
     JOIN Squadra AS S ON S.id = P.squadra
-    WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+    WHERE S.stagione = (
+        SELECT anno_inizio
+        FROM Stagione
+        WHERE corrente IS TRUE
+    )
     GROUP BY squadra, MONTH(data_ora_inizio)
     HAVING mese = 7
 ) AS LUGLIO
@@ -238,12 +254,16 @@ LEFT JOIN (
     JOIN Partecipazione AS P ON P.allenamento = R.allenamento
     JOIN Allenamento AS A ON A.id = R.allenamento
     JOIN Squadra AS S ON S.id = P.squadra
-    WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+    WHERE S.stagione = (
+        SELECT anno_inizio
+        FROM Stagione
+        WHERE corrente IS TRUE
+    )
     GROUP BY squadra, MONTH(data_ora_inizio)
     HAVING mese = 6
 ) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
--- OPERAZIONE 11 EX 12 CON LE VISTE
+-- OPERAZIONE 11 CON LE VISTE
 
 CREATE OR REPLACE VIEW valutazioni_medie_squadre_per_mese AS
 SELECT squadra,
@@ -253,7 +273,11 @@ FROM Report AS R
 JOIN Partecipazione AS P ON P.allenamento = R.allenamento
 JOIN Allenamento AS A ON A.id = R.allenamento
 JOIN Squadra AS S ON S.id = P.squadra
-WHERE S.stagione = (SELECT anno_inizio FROM Stagione WHERE corrente IS TRUE)
+WHERE S.stagione = (
+    SELECT anno_inizio
+    FROM Stagione
+    WHERE corrente IS TRUE
+)
 GROUP BY squadra, MONTH(data_ora_inizio);
 
 SELECT LUGLIO.squadra,
@@ -269,10 +293,44 @@ LEFT JOIN (
     WHERE mese = 6
 ) AS GIUGNO ON GIUGNO.squadra = LUGLIO.squadra;
 
--- OPERAZIONE 12 ex 13
+-- OPERAZIONE 12
 -- Selezionamento della domanda che ha ricevuto più risposte per ogni etichetta.
 
--- OPERAZIONE 13 ex 14
+SELECT CD.etichetta, D.testo, COUNT(*) AS numero_risposte
+FROM Domanda AS D
+JOIN ClassificazioneDomanda AS CD ON CD.domanda = D.id
+JOIN Composizione AS C ON C.domanda = D.id
+GROUP BY CD.etichetta, D.id
+HAVING (CD.etichetta, numero_risposte) IN (
+    SELECT etichetta, MAX(numero_risposte) AS max_numero_risposte
+    FROM (
+        SELECT CD.etichetta, D.testo, COUNT(*) AS numero_risposte
+        FROM Domanda AS D
+        JOIN ClassificazioneDomanda AS CD ON CD.domanda = D.id
+        JOIN Composizione AS C ON C.domanda = D.id
+        GROUP BY CD.etichetta, D.id
+    ) AS domande_numero_risposte
+    GROUP BY etichetta
+);
+
+-- OPERAZIONE 12 CON LE VISTE
+
+CREATE OR REPLACE VIEW domande_numero_risposte AS
+SELECT CD.etichetta, D.testo, COUNT(*) AS numero_risposte
+FROM Domanda AS D
+JOIN ClassificazioneDomanda AS CD ON CD.domanda = D.id
+JOIN Composizione AS C ON C.domanda = D.id
+GROUP BY CD.etichetta, D.id;
+
+SELECT *
+FROM domande_numero_risposte
+HAVING (etichetta, numero_risposte) IN (
+    SELECT etichetta, MAX(numero_risposte) AS max_numero_risposte
+    FROM domande_numero_risposte
+    GROUP BY etichetta
+);
+
+-- OPERAZIONE 13
 -- Visualizzazione del calendario degli allenamenti e degli eventi in programma
 -- nel successivo mese a cui un atleta può partecipare.
 
@@ -294,7 +352,7 @@ AND squadra IN (
 )
 ORDER BY data_ora_inizio;
 
--- OPERAZIONE 13 EX 14 CON LE VISTE
+-- OPERAZIONE 13 CON LE VISTE
 
 CREATE OR REPLACE VIEW Calendario AS
 SELECT squadra, 'Allenamento' AS nome, data_ora_inizio, id AS id_allenamento
