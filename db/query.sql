@@ -22,18 +22,6 @@ LEFT JOIN Tutela ON atleta = ATL.id
 LEFT JOIN Utente AS TUT ON TUT.id = tutore
 WHERE ATL.id = 3;
 
--- SI DEFINISCE UNA VISTA CHE ESTRAE I CONTATTI DI TUTTI GLI ATLETI E RELATIVI
--- TUTORI PER FACILITARE L'OPERAZIONE 4
-
-CREATE OR REPLACE VIEW contatti_atleti_tutori AS
-SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
-    tutore, TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
-    TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
-FROM Utente AS ATL
-JOIN Atleta ON ATL.id = utente
-LEFT JOIN Tutela ON atleta = ATL.id
-LEFT JOIN Utente AS TUT ON TUT.id = tutore;
-
 -- OPERAZIONE 2
 -- Visualizzazione della percentuale di presenza agli allenamenti di ogni atleta
 -- facente parte della rosa di una determinata squadra.
@@ -103,6 +91,17 @@ ORDER BY E.data_ora_inizio;
 -- OPERAZIONE 4 (utilizza la vista definita nella operazione 1)
 -- Visualizzazione dei contatti degli atleti che non hanno intenzione di
 -- partecipare ad un evento futuro, o che non hanno risposto all'invito.
+
+-- SI DEFINISCE UNA VISTA BASATA SULL'OPERAZIONE 1 PER FACILITARE L'INTERROGAZIONE
+
+CREATE OR REPLACE VIEW contatti_atleti_tutori AS
+SELECT ATL.ID AS atleta, ATL.nome, ATL.cognome, ATL.email, ATL.telefono,
+    tutore, TUT.nome AS nome_tutore, TUT.cognome AS cognome_tutore,
+    TUT.email AS email_tutore, TUT.telefono AS telefono_tutore
+FROM Utente AS ATL
+JOIN Atleta ON ATL.id = utente
+LEFT JOIN Tutela ON atleta = ATL.id
+LEFT JOIN Utente AS TUT ON TUT.id = tutore;
 
 SELECT *
 FROM contatti_atleti_tutori
