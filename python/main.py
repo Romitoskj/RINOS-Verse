@@ -1,8 +1,13 @@
 import mariadb
+from colorama import Fore, Back, Style
 from getpass import getpass
 from utente import Utente
 
-# TODO classe utente e sotto classe per ogni tipologia
+# ritorna la stringa inserita dall'utente se non è vuota, altrimenti None
+def user_input(message):
+    val = input(message)
+    return val if val else None
+
 if __name__ == '__main__':
     connection_args = {
         "user": "root",
@@ -18,13 +23,52 @@ if __name__ == '__main__':
         print(f"Error: {e}")
     
     cur = conn.cursor()
+    user = None
 
-    while(True):
-        try:
-            username = input("Username: ")
+    print()
+    print(Fore.GREEN + "RINOS VERSE")
+    print(Style.RESET_ALL)
+    print("[0]\tLog in")
+    print("[1]\tSign up")
+
+    choice = int(input(Fore.GREEN + "> "))
+    print(Style.RESET_ALL)
+
+    if (choice == 0):
+        while(True):
+            username = user_input("Username: ")
             password = getpass()
             user = Utente(username, password)
-            user.login(cur)
-            break
-        except Exception as e:
-            print(e)
+            try:
+                user.login(cur)
+                break
+            except Exception as e:
+                print(e)
+                print("riprovare? (S/N)")
+                choice = input("> ")
+                if choice.upper() == 'N': break
+    else:
+        while(True):
+            username = user_input("Username: ")
+            password = getpass()
+            nome = user_input("Nome: ")
+            cognome = user_input("Cognome: ")
+            data_nascita = user_input("Data di nascita (YYYY-MM-DD): ")
+            sesso = user_input("Sesso ('M' o 'F'): ")
+            email = user_input("Email: ")
+            telefono = user_input("Telefono: ")
+            tessera = user_input("Numero tessera: ")
+
+            user = Utente(username, password, nome, cognome, data_nascita, sesso, email, telefono, tessera)
+            try:
+                user.signup(cur)
+                break
+            except Exception as e:
+                print(e)
+                print("riprovare? (S/N)")
+                choice = input("> ")
+                if choice.upper() == 'N': break
+            
+print(user)
+
+conn.close()
