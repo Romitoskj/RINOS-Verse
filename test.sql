@@ -1,1 +1,0 @@
-SELECT stato FROM Allenamento WHERE id = 1;

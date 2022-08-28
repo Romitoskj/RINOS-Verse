@@ -352,6 +352,11 @@ AND squadra IN (
     FROM Rosa AS R
     WHERE atleta = 24
 )
+AND (nome = 'Allenamento' OR (squadra, data_ora_inizio) IN (
+    SELECT squadra_ev, data_ev
+    FROM invito
+    WHERE atleta = 24
+))
 ORDER BY data_ora_inizio;
 
 -- OPERAZIONE 13 CON LE VISTE
@@ -373,4 +378,9 @@ AND squadra IN (
     FROM Rosa AS R
     WHERE atleta = 24
 )
+AND (nome = 'Allenamento' OR (squadra, data_ora_inizio) IN (
+    SELECT squadra_ev, data_ev
+    FROM invito
+    WHERE atleta = 24
+))
 ORDER BY data_ora_inizio;
