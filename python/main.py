@@ -8,31 +8,15 @@ def user_input(message):
     val = input(message)
     return val if val else None
 
-if __name__ == '__main__':
-    connection_args = {
-        "user": "root",
-        "password": "",
-        "host": "localhost",
-        "database": "rinos",
-        "autocommit": True # default false e conn.commit e rollback
-    }
-
-    try:
-        conn = mariadb.connect(**connection_args)
-    except mariadb.Error as e:
-        print(f"Error: {e}")
-    
-    cur = conn.cursor()
+def menu_iniz(cur):
     user = None
-
     print()
     print(Fore.GREEN + "RINOS VERSE")
     print(Style.RESET_ALL)
     print("[0]\tLog in")
     print("[1]\tSign up")
 
-    choice = int(input(Fore.GREEN + "> "))
-    print(Style.RESET_ALL)
+    choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
 
     if (choice == 0):
         while(True):
@@ -43,9 +27,9 @@ if __name__ == '__main__':
                 user.login(cur)
                 break
             except Exception as e:
-                print(e)
+                print(Fore.RED + str(e) + Style.RESET_ALL)
                 print("riprovare? (S/N)")
-                choice = input("> ")
+                choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
                 if choice.upper() == 'N': break
     else:
         while(True):
@@ -64,11 +48,33 @@ if __name__ == '__main__':
                 user.signup(cur)
                 break
             except Exception as e:
-                print(e)
+                print(Fore.RED + str(e) + Style.RESET_ALL)
                 print("riprovare? (S/N)")
-                choice = input("> ")
+                choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
                 if choice.upper() == 'N': break
-            
-print(user)
+    return user if user.id else None
 
-conn.close()
+def main(cur):
+    user = menu_iniz(cur)
+    if not user: 
+        print('Arrivederci!')
+        return
+    user.menu()
+
+if __name__ == '__main__':
+    connection_args = {
+        "user": "root",
+        "password": "",
+        "host": "localhost",
+        "database": "rinos",
+        "autocommit": True # default false e conn.commit e rollback
+    }
+
+    try:
+        conn = mariadb.connect(**connection_args)
+    except mariadb.Error as e:
+        print(f"Error: {e}")
+    
+    main(cur = conn.cursor())
+
+    conn.close()
