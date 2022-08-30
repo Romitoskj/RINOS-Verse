@@ -21,7 +21,8 @@ CREATE OR REPLACE TABLE Utente (
     data_nascita DATE NOT NULL,
     sesso CHAR(1) NOT NULL,
     email VARCHAR(50) UNIQUE,
-    telefono VARCHAR(15) UNIQUE,
+    telefono VARCHAR(15) UNIQUE, 
+    tessera INT UNSIGNED UNIQUE,
     FOREIGN KEY (sesso) REFERENCES Sesso(value) ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT `numero_tel` CHECK (`telefono` REGEXP '^[+]?([0-9]{6}[0-9]*)$'),
     CONSTRAINT `email_format` CHECK (`email` REGEXP '^[A-Za-z0-9][A-Za-z0-9-.]+[A-Za-z0-9]@([A-Za-z0-9-]+.)+[A-Za-z0-9]+')

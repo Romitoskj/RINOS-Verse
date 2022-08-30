@@ -8,17 +8,18 @@ def user_input(message):
     val = input(message)
     return val if val else None
 
-def menu_iniz(cur):
+def menu(cur):
     user = None
     print()
     print(Fore.GREEN + "RINOS VERSE")
     print(Style.RESET_ALL)
-    print("[0]\tLog in")
-    print("[1]\tSign up")
+    print("[0]\tEsci")
+    print("[1]\tAccedi")
+    print("[2]\tRegistrati")
 
     choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
 
-    if (choice == 0):
+    if choice == 1:
         while(True):
             username = user_input("Username: ")
             password = getpass()
@@ -31,7 +32,7 @@ def menu_iniz(cur):
                 print("riprovare? (S/N)")
                 choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
                 if choice.upper() == 'N': break
-    else:
+    elif choice == 2:
         while(True):
             username = user_input("Username: ")
             password = getpass()
@@ -52,14 +53,12 @@ def menu_iniz(cur):
                 print("riprovare? (S/N)")
                 choice = input(Fore.GREEN + "> " + Style.RESET_ALL)
                 if choice.upper() == 'N': break
-    return user if user.id else None
-
-def main(cur):
-    user = menu_iniz(cur)
-    if not user: 
+    else:
         print('Arrivederci!')
         return
-    user.menu()
+
+    if user.id: user.menu(cur)
+    print('Arrivederci!')
 
 if __name__ == '__main__':
     connection_args = {
@@ -75,6 +74,6 @@ if __name__ == '__main__':
     except mariadb.Error as e:
         print(f"Error: {e}")
     
-    main(cur = conn.cursor())
+    menu(cur = conn.cursor())
 
     conn.close()
