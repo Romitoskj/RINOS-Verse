@@ -29,7 +29,6 @@ class Tutore:
         )
         return Tutore(cur, id)
         
-    # TODO operazione 8
     def allenamenti(self, cur):
         cur.execute(
             """

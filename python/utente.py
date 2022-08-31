@@ -65,7 +65,7 @@ class Utente:
 
     def menu(self, cursor):
         choice = None
-        print(Fore.GREEN + "Benvenuto " + str(self) + "!" + Style.RESET_ALL)
+        print(Fore.GREEN + "Benvenuto " + str(self).capitalize() + "!" + Style.RESET_ALL)
         while True:
             print()
             print("[0]\tLog out")
