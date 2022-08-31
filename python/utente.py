@@ -69,13 +69,13 @@ class Utente:
         while True:
             print()
             print("[0]\tLog out")
-            if self.atleta: print("[1]\tEntra come atleta")
+            if self.atleta: print("[1]\tSezione atleta")
             else: print("[1]\tRegistrati come atleta")
-            if self.allenatore: print("[2]\tEntra come allenatore")
+            if self.allenatore: print("[2]\tSezione allenatore")
             else: print("[2]\tRegistrati come allenatore")
-            if self.tutore: print("[3]\tEntra come tutore")
+            if self.tutore: print("[3]\tSezione tutore")
             else: print("[3]\tRegistrati come tutore")
-            if self.dirigente: print("[4]\tEntra come dirigente")
+            if self.dirigente: print("[4]\tSezione dirigente")
             else: print("[4]\tRegistrati come dirigente")
 
             choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
