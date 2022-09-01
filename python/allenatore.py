@@ -79,7 +79,7 @@ class Allenatore:
         )
         res = cur.fetchall()
         if res:
-            return [e[0] + " " + e[2].strftime("%d/%m/%Y, %H:%M:%S") + "\ttotale: " + str(e[3]) + "\tpresenti: " + str(e[4]) + "\tassenti: " + str(e[5]) + "\tsenza risposta: " + str(e[6]) for e in res]
+            return [e[0] + "\t" + e[2].strftime("%d/%m/%Y, %H:%M:%S") + "\ttotale: " + str(e[3]) + "\tpresenti: " + str(e[4]) + "\tassenti: " + str(e[5]) + "\tsenza risposta: " + str(e[6]) for e in res]
         else:
             return None
 
@@ -230,7 +230,6 @@ class Allenatore:
             print("[2]\tVisualizza le percentuali di presenza agli allenamenti delle tue squadre")
             print("[3]\tVisualizza il calendario degli eventi")
             print("[4]\tProgramma un nuovo allenamento")
-            print("[5]\tRecensisci un allenamento")
 
             choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
 
