@@ -100,9 +100,9 @@ class Dirigente:
                 squadre = self.squadre(cur)
                 if squadre:
                     for squadra, allenatori in squadre.items():
-                        print("\tSquadra: " + squadra + "\n\tStaff:")
+                        print(Fore.GREEN + "\t" + squadra + Style.RESET_ALL + "\n\tStaff:")
                         for a in allenatori:
-                            print(f"\t\t"+a)
+                            print(f"\t\t• "+a)
                         print()
                 else:
                     print("Non ci sono squadre attive durante la stagione in corso.")
