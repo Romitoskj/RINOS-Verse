@@ -85,7 +85,7 @@ class Tutore:
                     self.menu_atleti(cur)
                 else:
                     print("Non tuteli nessun alteta.")
-            if choice == 2:
+            elif choice == 2:
                 all = self.allenamenti(cur)
                 if all:
                     for data, atleti in all.items():
