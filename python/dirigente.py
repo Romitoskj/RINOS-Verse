@@ -77,6 +77,7 @@ class Dirigente:
                         """,
                         (squadra, choice)
                         )
+                        print(Fore.GREEN + "Squadra creata!" + Style.RESET_ALL)
                     except mariadb.Error as e:
                         print(Fore.RED + "L'allenatore fa già parte dello staff di questa squadra." + Style.RESET_ALL)
             except mariadb.Error as e:
