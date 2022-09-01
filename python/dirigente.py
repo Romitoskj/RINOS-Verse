@@ -65,7 +65,9 @@ class Dirigente:
                     for id, nome in allenatori.items():
                         print(f"[{id}]\t{nome}")
                     choice = int(input(Fore.GREEN + "> " + Style.RESET_ALL))
-                    if choice == 0: return
+                    if choice == 0: 
+                        print(Fore.GREEN + "Squadra creata!" + Style.RESET_ALL)
+                        return
                     if choice not in allenatori.keys():
                         print(Fore.RED + "Allenatore inesistente." + Style.RESET_ALL)
                         continue
@@ -77,7 +79,6 @@ class Dirigente:
                         """,
                         (squadra, choice)
                         )
-                        print(Fore.GREEN + "Squadra creata!" + Style.RESET_ALL)
                     except mariadb.Error as e:
                         print(Fore.RED + "L'allenatore fa già parte dello staff di questa squadra." + Style.RESET_ALL)
             except mariadb.Error as e:
