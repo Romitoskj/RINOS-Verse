@@ -10,8 +10,8 @@ L’applicazione in particolare facilita agli allenatori la gestione delle sedut
 di allenamento, permettendogli di tenere traccia dei giocatori presenti, degli
 esercizi svolti e della qualità della seduta attraverso dei report.
 
-### [Documentazione in italiano](https://drive.google.com/file/d/1PedDjAIcCZmDJzy2mHADNYmJeeGSfPIE/view?usp=sharing)
+### [:page_facing_up: Documentazione in italiano](https://drive.google.com/file/d/1PedDjAIcCZmDJzy2mHADNYmJeeGSfPIE/view?usp=sharing)
 
-### [Video Demo App](https://youtu.be/lbN9tr7oJlA)
+### [:film_projector: Video Demo App](https://youtu.be/lbN9tr7oJlA)
 
-### [Rugby Nuovo Salario](https://www.rugbynuovosalario.it/)
+### [:rugby_football: Rugby Nuovo Salario](https://www.rugbynuovosalario.it/)
