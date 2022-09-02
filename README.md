@@ -2,7 +2,7 @@
 # RINOS-Verse :rugby_football:	
 Progetto del corso Basi di Dati A.A.2022
 
-Database che consente ad una società sportiva, nello specifico unclub di rugby 
+Database che consente ad una società sportiva, nello specifico un club di rugby 
 appartenente alla Federazione Italiana Rugby, di memorizzare i dati relativi ai
 tesserati, agli allenamenti e agli eventi delle varie squadre.
 
