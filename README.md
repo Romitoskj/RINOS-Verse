@@ -1,6 +1,6 @@
 ![RINOS banner](https://user-images.githubusercontent.com/72152346/182383435-facb3726-c0c0-4089-a504-166e7c984ed6.png)
 # RINOS-Verse :rugby_football:	
-Progetto del corso Basi di Dati A.A.2022
+Progetto del corso Basi di Dati A.A.2022 presso Sapienza Università di Roma.
 
 Database che consente ad una società sportiva, nello specifico un club di rugby 
 appartenente alla Federazione Italiana Rugby, di memorizzare i dati relativi ai
