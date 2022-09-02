@@ -2,6 +2,14 @@
 # RINOS-Verse :rugby_football:	
 Progetto del corso Basi di Dati A.A.2022
 
-# [Documentazione in italiano](https://drive.google.com/file/d/1PedDjAIcCZmDJzy2mHADNYmJeeGSfPIE/view?usp=sharing)
+Database che consente ad una società sportiva, nello specifico unclub di rugby 
+appartenente alla Federazione Italiana Rugby, di memorizzare i dati relativi ai
+tesserati, agli allenamenti e agli eventi delle varie squadre.
 
-# [Video Demo App](https://youtu.be/lbN9tr7oJlA)
+L’applicazione in particolare facilita agli allenatori la gestione delle sedute
+di allenamento, permettendogli di tenere traccia dei giocatori presenti, degli
+esercizi svolti e della qualità della seduta attraverso dei report.
+
+### [Documentazione in italiano](https://drive.google.com/file/d/1PedDjAIcCZmDJzy2mHADNYmJeeGSfPIE/view?usp=sharing)
+
+### [Video Demo App](https://youtu.be/lbN9tr7oJlA)
