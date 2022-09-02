@@ -13,3 +13,5 @@ esercizi svolti e della qualità della seduta attraverso dei report.
 ### [Documentazione in italiano](https://drive.google.com/file/d/1PedDjAIcCZmDJzy2mHADNYmJeeGSfPIE/view?usp=sharing)
 
 ### [Video Demo App](https://youtu.be/lbN9tr7oJlA)
+
+### [Rugby Nuovo Salario](https://www.rugbynuovosalario.it/)
